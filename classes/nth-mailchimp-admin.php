@@ -31,12 +31,13 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		
 		add_action('admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
 		
-		$settings = self::get_settings();
+		$api_settings = self::get_settings('nthmc_api_key', true );
+		$settings = self::get_settings(null, true );
 		
 		$api_token = $api_key = null;
 		
 		$api_token = isset( $settings['api_token'] ) && !empty( $settings['api_token'] )? true : false;
-		$api_key = isset( $settings['api_key'] ) && !empty( $settings['api_key'] )? true : false;
+		$api_key = isset( $api_settings['api_key'] ) && !empty( $api_settings['api_key'] )? true : false;
 		
 		if ( ( ! $api_key && ! $api_token )  
 			|| ( !isset( $api_token) && $api_key &&  !isset($_POST['submit'] ) ) ) {
@@ -127,7 +128,7 @@ class NthMailChimpAdmin extends NthMailChimpCore
 	{
 		register_setting(
             'api_group', // Option group
-            NthMailChimpCore::$option_name, // Option name
+            'nthmc_api_key', // Option name
             array( __CLASS__, 'sanitise_api' ) // Sanitise
         );
 
@@ -152,7 +153,7 @@ class NthMailChimpAdmin extends NthMailChimpCore
 	{
 		$new_input = array();
 		
-		$new_input = self::get_settings();
+		$new_input = self::get_settings('nthmc_api_key');
 		 
         if( isset( $input['api_key'] ) ){
             $new_input['api_key'] = esc_attr( $input['api_key'] );
@@ -163,12 +164,12 @@ class NthMailChimpAdmin extends NthMailChimpCore
 	
 	static public function api_callback()
     {
-		return self::text_callback( 'api_key', NthMailChimpCore::$option_name );
+		return self::text_callback( 'api_key', 'nthmc_api_key' );
     }
 	
 	static public function text_callback( $option_name, $option_group = 'settings' )
     {
-		$settings = self::get_settings();
+		$settings = self::get_settings( 'nthmc_api_key' );
 		
         printf(
             '<input class="all-options" id="%2$s" name="%3$s[%2$s]" value="%s" />',
@@ -188,7 +189,9 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		
 		$api_key = $api_token = null;
 		
-		$settings = self::get_settings();
+		$api_settings = self::get_settings('nthmc_api_key', true );
+		$settings = self::get_settings(null, true );
+		
 		
 		$data_for_view = $settings;
 		
@@ -203,9 +206,10 @@ class NthMailChimpAdmin extends NthMailChimpCore
 			$api_token = $settings['api_token'].'-'.$settings['api_dc'];
 		}
 		
-		if ( isset( $settings['api_key'] ) ){
-			$api_token = $settings['api_key'];
+		if ( isset( $api_settings['api_key'] ) ){
+			$api_token = $api_settings['api_key'];
 		}
+		
 		
 		
 		if ( ! $api_token ){
@@ -239,9 +243,9 @@ class NthMailChimpAdmin extends NthMailChimpCore
     		check_admin_referer( 'mailchimp-notifications', '_wpnonce-mailchimp-notifications' );
 			
 			
-			$settings['template_id'] 	= isset( $_POST['template_id'] ) && !empty( $_POST['template_id'] )? esc_attr($_POST['template_id']) : null ;	
-			$settings['list_id'] 		= isset( $_POST['list_id'] ) && !empty( $_POST['list_id'] )? esc_attr($_POST['list_id']) : null ;
-			$settings['segment_id'] 	= isset( $_POST['segment_id'] ) && !empty( $_POST['segment_id'] )? esc_attr($_POST['segment_id']) : null ;
+			$settings['template_id'] 	= isset( $_POST['template_id'] ) && !empty( $_POST['template_id'] ) && 'Please select ...' != $_POST['template_id'] ? esc_attr($_POST['template_id']) : null ;	
+			$settings['list_id'] 		= isset( $_POST['list_id'] ) && !empty( $_POST['list_id'] ) && 'Please select ...' != $_POST['list_id']? esc_attr($_POST['list_id']) : null ;
+			$settings['segment_id'] 	= isset( $_POST['segment_id'] ) && !empty( $_POST['segment_id'] ) && 'Please select ...' != $_POST['segment_id']? esc_attr($_POST['segment_id']) : null ;
 			
 			$settings['enabled'] 		= isset( $_POST['enabled'] ) && !empty( $_POST['enabled'] )? 1 : 0 ;
 			$settings['test_mode'] 		= isset( $_POST['test_mode'] ) && !empty( $_POST['test_mode'] )? 1 : 0 ;
@@ -266,8 +270,7 @@ class NthMailChimpAdmin extends NthMailChimpCore
 			$data_for_view['email_text']	= $settings['email_text'];
 			
 			$data_for_view['message'] = 'Congratulations, the settings have been saved.';
-		}
-		
+		}		
 		
 		if ( isset( $settings['list_id'] ) &&!empty( $settings['list_id'] ) ){
 			$data_for_view['segment_list'] = $mailchimp->lists->segments($settings['list_id']);

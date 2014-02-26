@@ -285,9 +285,13 @@ class NthMailChimpCore
      *
      * @return array
      */
-    static function save_settings( $settings_to_save ){
-
-        update_option( NthMailChimpCore::$option_name, $settings_to_save );
+    static function save_settings( $settings_to_save, $option_name = null ){
+		
+		if ( ! $option_name ){
+			$option_name = NthMailChimpCore::$option_name;
+		}
+		
+        update_option( $option_name, $settings_to_save );
 
         NthMailChimpCore::$settings = $settings_to_save;
 
