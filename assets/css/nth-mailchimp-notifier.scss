@@ -1,0 +1,39 @@
+@mixin clearfix() {
+	*zoom:1;
+
+	&:before,
+	&:after {
+	    content:"";
+	    display:table;
+	}
+	&:after {
+	    clear:both;
+	}
+}
+
+
+.nth-mailchimp-notifier{
+    h2{
+        font-size: 1.3em;
+    }
+    .templates{
+        @include clearfix();
+    }
+
+    .box{
+        img{
+            @include clearfix();
+            margin-bottom: 10px;
+            border: 1px solid #fafafa;
+        }
+        label{
+            @include clearfix();
+        }
+        width: 30%;
+        float: left;
+    }
+}
+
+.clear{
+    clear:both;
+}

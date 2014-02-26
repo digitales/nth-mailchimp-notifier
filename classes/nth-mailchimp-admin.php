@@ -32,8 +32,14 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		add_action('admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
 		
 		$settings = self::get_settings();
-		if ( ( isset( $settings['api_token'] ) && empty( $settings['api_token'] ) )
-			|| ( !isset( $settings['api_token']) &&  !isset($_POST['submit'] ) ) ) {
+		
+		$api_token = $api_key = null;
+		
+		$api_token = isset( $settings['api_token'] ) && !empty( $settings['api_token'] )? true : false;
+		$api_key = isset( $settings['api_key'] ) && !empty( $settings['api_key'] )? true : false;
+		
+		if ( ( ! $api_key && ! $api_token )  
+			|| ( !isset( $api_token) && $api_key &&  !isset($_POST['submit'] ) ) ) {
 			add_action('admin_notices', array( __CLASS__, 'api_activation_warning') );
 		}
 		
@@ -41,13 +47,13 @@ class NthMailChimpAdmin extends NthMailChimpCore
 
 	static function register_styles_and_scripts()
     {
-		// Stub
+		wp_register_style( 'nth-mailchimp-notifier-css', plugins_url('assets/css/nth-mailchimp-notifier.css', dirname(__FILE__) ) );	
     }
 	
 	
 	static function enqueue_scripts( $hook )
 	{
-		// Stub
+		wp_enqueue_style( 'nth-mailchimp-notifier-css' );
 	}
     
     
@@ -55,6 +61,10 @@ class NthMailChimpAdmin extends NthMailChimpCore
     {
 		
 		add_options_page( 'MailChimp notifications', 'MailChimp notifications', 'edit_plugins', 'nth-mailchimp-settings', array( __CLASS__,'settings_page' ) );
+		
+		add_submenu_page( null, 'Send test email', 'Send test email', 'edit_posts', 'send-test-email', array( __CLASS__,'new_post_notification' ) );
+		
+		add_submenu_page( null, 'Nth MailChimp API', 'Nth MailChimp API', 'edit_posts', 'nth-mailchimp-api', array( __CLASS__,'api_settings' ) );
 		
     }
     
@@ -103,26 +113,84 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		self::include_view( 'index' );
     }
 	
+	
+	static function api_settings()
+	{
+		
+		
+		self::include_view( 'api_settings' );
+	}
+	
+	
 
 	static function settings_init()
 	{
-		// Stub	
+		register_setting(
+            'api_group', // Option group
+            NthMailChimpCore::$option_name, // Option name
+            array( __CLASS__, 'sanitise_api' ) // Sanitise
+        );
+
+        add_settings_section(
+            'setting_api', // ID
+            'API Settings', // Title
+            array( __CLASS__, 'print_section_info' ), // Callback
+            'api-admin' // Page
+        );
+
+        add_settings_field(
+            'mailchimp_api',
+            'MailChimp API key',
+            array( __CLASS__, 'api_callback' ), 
+            'api-admin',
+            'setting_api'           
+        );
+		
 	}
+	
+	static public function sanitise_api( $input )
+	{
+		$new_input = array();
+		
+		$new_input = self::get_settings();
+		 
+        if( isset( $input['api_key'] ) ){
+            $new_input['api_key'] = esc_attr( $input['api_key'] );
+        }
+        return $new_input;
+	}
+
+	
+	static public function api_callback()
+    {
+		return self::text_callback( 'api_key', NthMailChimpCore::$option_name );
+    }
+	
+	static public function text_callback( $option_name, $option_group = 'settings' )
+    {
+		$settings = self::get_settings();
+		
+        printf(
+            '<input class="all-options" id="%2$s" name="%3$s[%2$s]" value="%s" />',
+            isset( $settings[ $option_name ] ) ? esc_attr( $settings[ $option_name ]) : '', $option_name, $option_group
+        );
+    }
 	
 	static function print_section_info()
 	{
+		// Stub	
 	}
-	
-	static function print_account_info()
-	{
-	}
-	
+		
 	
 	static function settings_page()
 	{	
 		$data_for_view = array();
 		
+		$api_key = $api_token = null;
+		
 		$settings = self::get_settings();
+		
+		$data_for_view = $settings;
 		
 		/*
 		 * Let's query the API to retrieve:
@@ -131,11 +199,18 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		 * * List of segments in the list
 		 */
 		
-		$api_token = $settings['api_token'].'-'.$settings['api_dc'];
+		if ( isset( $settings['api_token'] ) ){
+			$api_token = $settings['api_token'].'-'.$settings['api_dc'];
+		}
+		
+		if ( isset( $settings['api_key'] ) ){
+			$api_token = $settings['api_key'];
+		}
+		
 		
 		if ( ! $api_token ){
-			
-			self::include_view( 'settings' );
+			$error = sprintf( __('To make full use of the Nth MailChimp Notifier plugin on your site, please <a href="%s" class="button  button-primary">Link it with your MailChimp account</a> or <a href="%s" class="button  button-primary">Add an API key</a>', 'nthmailchimp'), add_query_arg(array("nthmc_action" => "authorise"), home_url('index.php')), add_query_arg(array("page" => "nth-mailchimp-api"), admin_url('options.php')) );
+			self::include_view( 'settings', array( 'error' => $error ) );
 			
 			self::include_view( 'activation_warning' );
 			
@@ -152,16 +227,53 @@ class NthMailChimpAdmin extends NthMailChimpCore
 			$data_for_view['template_id'] = 0;
 		}
 		
-		var_dump( $data_for_view['template_list']);
 		
-		
+		$data_for_view['email_content']	= isset( $settings['email_content'] )? stripcslashes( htmlspecialchars_decode ( $settings['email_content'] ) ) : '' ;
+
 		$data_for_view['list_list'] = $mailchimp->lists->getList();
 		
+		// Get the segments for the list.
+		$data_for_view['segment_list'] = array();
+			
+		if ( isset( $_POST['_wpnonce-mailchimp-notifications'] ) ) {
+    		check_admin_referer( 'mailchimp-notifications', '_wpnonce-mailchimp-notifications' );
+			
+			
+			$settings['template_id'] 	= isset( $_POST['template_id'] ) && !empty( $_POST['template_id'] )? esc_attr($_POST['template_id']) : null ;	
+			$settings['list_id'] 		= isset( $_POST['list_id'] ) && !empty( $_POST['list_id'] )? esc_attr($_POST['list_id']) : null ;
+			$settings['segment_id'] 	= isset( $_POST['segment_id'] ) && !empty( $_POST['segment_id'] )? esc_attr($_POST['segment_id']) : null ;
+			
+			$settings['enabled'] 		= isset( $_POST['enabled'] ) && !empty( $_POST['enabled'] )? 1 : 0 ;
+			$settings['test_mode'] 		= isset( $_POST['test_mode'] ) && !empty( $_POST['test_mode'] )? 1 : 0 ;
+			$settings['test_emails'] 	= isset( $_POST['test_emails'] ) && !empty( $_POST['test_emails'] )? esc_attr( $_POST['test_emails'] ) : null ;
+			
+			$settings['email_subject'] 	= isset( $_POST['email_subject'] ) && !empty( $_POST['email_subject'] )? esc_attr( $_POST['email_subject'] ) : null ;
+			$settings['email_content'] 	= isset( $_POST['email_content'] ) && !empty( $_POST['email_content'] )? htmlspecialchars( balanceTags( $_POST['email_content'] ) ) : null ;
+			$settings['email_text'] 	= isset( $_POST['email_text'] ) && !empty( $_POST['email_text'] )? esc_attr( $_POST['email_text'] ) : null ;
+			
+			self::save_settings( $settings );
+			
+			$data_for_view['template_id']  	= $settings['template_id'];
+			$data_for_view['list_id']  		= $settings['list_id'];
+			$data_for_view['segment_id']	= $settings['segment_id'];
+			
+			$data_for_view['enabled']		= $settings['enabled'];
+			$data_for_view['test_mode']		= $settings['test_mode'];
+			$data_for_view['test_emails']	= $settings['test_emails'];
+			$data_for_view['email_subject']	= $settings['email_subject'];
+			
+			$data_for_view['email_content']	= stripcslashes( htmlspecialchars_decode ( $settings['email_content'] ) ) ;
+			$data_for_view['email_text']	= $settings['email_text'];
+			
+			$data_for_view['message'] = 'Congratulations, the settings have been saved.';
+		}
 		
+		
+		if ( isset( $settings['list_id'] ) &&!empty( $settings['list_id'] ) ){
+			$data_for_view['segment_list'] = $mailchimp->lists->segments($settings['list_id']);
+		}
 		
 		self::include_view( 'settings', $data_for_view );
-		
-		
 	}
 	
 	
@@ -169,8 +281,6 @@ class NthMailChimpAdmin extends NthMailChimpCore
 	{
 		self::include_view( 'api' );
 	}
-	
-	
 	
 
 	/**

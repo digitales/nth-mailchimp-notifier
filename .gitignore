@@ -1,1 +1,3 @@
 *.log
+assets/css/.sass-cache
+.sass-cache/

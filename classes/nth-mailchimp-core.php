@@ -112,7 +112,7 @@ class NthMailChimpCore
 	
 	static function add_actions()
 	{
-		// Stub
+		add_action( 'publish_post', array( __CLASS__, 'new_post_notification' ) );
 	}
 	
 	
@@ -437,5 +437,180 @@ class NthMailChimpCore
 		return add_query_arg($args, $url);
 		
 	}
+	
+	
+	static function new_post_notification( $post_id = null)
+	{
+		
+		if ( ! $post_id ){
+			$post_id = isset( $_GET['post_id'] ) && !empty( $_GET['post_id'] )? (int)$_GET['post_id'] : 0;
+		}
+		
+		$content_sections = array();
+		
+		$the_post = get_post( $post_id );
+		
+		$settings = self::get_settings();
+		
+		$enabled = isset( $settings['enabled'] ) && 1 == $settings['enabled']? true : false;
+		
+		if ( ! $enabled )
+		{
+			return false;
+		}
+	
+		$api_key = $settings['api_token'].'-'.$settings['api_dc'];
+		
+		$mailchimp = new Mailchimp( $api_key );
+		
+		//$campaigns = $mailchimp->campaigns->getList();
+		
+		$template = $mailchimp->templates->info( $settings['template_id'] );
+		$list = $mailchimp->lists->getList( array( 'list_id' => $settings['list_id'] ) );
+		
+		$segments = $mailchimp->lists->segments( $settings['list_id'] );
+		
+		if ( isset( $template['sections'] ) && !empty( $template['sections'] ) ){
+			$content_sections = $template['sections'];
+		}		
+		
+		$subject = self::process_tags( $settings['email_subject'], $the_post );
+		
+		$html_content = self::process_tags( wpautop( $settings['email_content'] ), $the_post );
+		
+		$text_content = self::process_tags( $settings['email_text'], $the_post );
+		
+		$from_name = $list['data'][0]['default_from_name'];
+		$from_email = $list['data'][0]['default_from_email'];
+
+		$options = array(
+				'subject' => $subject,
+				'template_id' => $settings['template_id'],
+				'list_id' => $settings['list_id'],
+				'from_name' => $from_name,
+				'from_email' => $from_email,
+			);
+		
+		// Override the main section of the template with the HTML content.
+		$content_sections['main'] = $html_content;
+		
+		$content = array(
+			'html' => $html_content,
+			'text' => $text_content,
+			'sections' => $content_sections,
+			);
+		
+		$segment_opts = array(
+				'saved_segment_id' => $settings['segment_id'],
+			);
+		
+		// Let's create the campaign in MailChimp
+		$result = $mailchimp->campaigns->create( 'regular', $options, $content, $segment_opts );
+		
+		$campaign_id = $result['id'];
+		
+		// Now we have created a campaign, should we send it?
+		if ( isset( $settings['test_mode'] ) && 1 == $settings['test_mode'] ){
+			
+			$email_addresses = explode(', ', $settings['test_emails'] );
+			
+			foreach( $email_addresses AS $key => $address ){
+				$email_addresses[$key] = trim( $address);
+			}
+
+			$test_result = $mailchimp->campaigns->sendTest( $campaign_id, $email_addresses );
+			return true;
+		
+		} else {
+			$mailchimp->campaigns->send( $campaign_id );
+			
+			return true;
+		}
+		
+	}
+	
+	
+	public static function process_tags( $text, WP_Post $the_post )
+	{
+		
+		$tags = $matches = array();
+		
+		$text = htmlspecialchars_decode( stripcslashes( $text ) );
+		
+		$text_to_return = $text;
+		
+		// $regex  = '#\*\|([A-Z-]*)\|\*#i';
+		$regex= '#\*\|([A-Z-_]*|[A-Z-_]*\:[a-z\/]*)\|\*#i';
+		
+		preg_match_all( $regex, $text, $matches );
+		
+		if ( !isset( $matches[1] ) || count( $matches[1] ) <=0 ){
+			return $text_to_return;
+		}
+		
+		$matches = $matches[1];
+		
+		foreach( $matches AS $key => $token ){
+			if ( 'P-' != substr( $token, 0, 2 )){
+				unset( $matches[ $key ] );
+				continue;	
+			}
+			
+			if ( false !== strpos( $token, ':' ) ){
+				$tmp = explode( ':', $token );
+				$matches[$key] = $tmp;
+			}
+		}
+		
+		// Now we have the tokens, let's replace them for actual values
+		foreach( $matches AS $token ){
+			$format = $string = null;
+			if ( is_array( $token ) ){
+				$format = $token[1];
+				$token = $token[0];
+			}
+			
+			switch( $token ){
+				case 'P-TITLE':
+					$string = $the_post->post_title;
+					break;
+				case 'P-URL':
+					$string = $the_post->guid;
+					break;
+				
+				case 'P-DATE':
+					if ( '' == $format ){
+						$string = mysql2date(get_option('date_format'), $the_post->post_date);
+					}else{
+		                $string = mysql2date($format, $the_post->post_date);
+					}
+					break;
+				case 'P-AUTHOR':
+					$author = get_userdata($the_post->post_author);
+					$string = $author->display_name;
+					break;
+				case 'P-CATEGORIES':
+					$string = the_category( ', ', null, $the_post->ID );
+					break;
+				case 'P-EXCERPT':
+					$string = $the_post->post_excerpt;
+					break;
+				case 'P-CONTENT':
+					$string = $the_post->post_content;
+					break;
+				default:
+					$string = '';
+					break;
+			}
+			
+			if ( $format ){
+				$token .= ':'.$format;
+			}
+			$text_to_return = str_replace( '*|'.$token.'|*', $string, $text_to_return );
+		}
+		
+		return $text_to_return;
+	}
+	
 
 }

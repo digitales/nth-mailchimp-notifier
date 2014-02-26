@@ -1,0 +1,31 @@
+.nth-mailchimp-notifier h2 {
+  font-size: 1.3em; }
+.nth-mailchimp-notifier .templates {
+  *zoom: 1; }
+  .nth-mailchimp-notifier .templates:before, .nth-mailchimp-notifier .templates:after {
+    content: "";
+    display: table; }
+  .nth-mailchimp-notifier .templates:after {
+    clear: both; }
+.nth-mailchimp-notifier .box {
+  width: 30%;
+  float: left; }
+  .nth-mailchimp-notifier .box img {
+    *zoom: 1;
+    margin-bottom: 10px;
+    border: 1px solid #fafafa; }
+    .nth-mailchimp-notifier .box img:before, .nth-mailchimp-notifier .box img:after {
+      content: "";
+      display: table; }
+    .nth-mailchimp-notifier .box img:after {
+      clear: both; }
+  .nth-mailchimp-notifier .box label {
+    *zoom: 1; }
+    .nth-mailchimp-notifier .box label:before, .nth-mailchimp-notifier .box label:after {
+      content: "";
+      display: table; }
+    .nth-mailchimp-notifier .box label:after {
+      clear: both; }
+
+.clear {
+  clear: both; }
