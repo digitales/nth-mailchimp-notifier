@@ -1,3 +1,4 @@
 *.log
 assets/css/.sass-cache
 .sass-cache/
+vendor/mailchimp-api-php/
