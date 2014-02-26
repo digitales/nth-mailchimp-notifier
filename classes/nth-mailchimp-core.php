@@ -13,7 +13,7 @@
  // Include the logging functions
 include_once( NTHMAILCHIMPPATH . 'classes/nth-mailchimp-logging.php' );
 
-include_once( NTHMAILCHIMPPATH . 'vendor/mailchimp-api-php/src/Mailchimp.php' );
+include_once( NTHMAILCHIMPPATH . 'vendor/mailchimp-api/src/Mailchimp.php' );
 
 class NthMailChimpCore
 {
