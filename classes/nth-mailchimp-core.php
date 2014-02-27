@@ -454,7 +454,8 @@ class NthMailChimpCore
 		
 		$the_post = get_post( $post_id );
 		
-		$settings = self::get_settings();
+		$api_settings = self::get_settings('nthmc_api_key', true );
+		$settings = self::get_settings(null, true );
 		
 		$enabled = isset( $settings['enabled'] ) && 1 == $settings['enabled']? true : false;
 		
@@ -463,9 +464,15 @@ class NthMailChimpCore
 			return false;
 		}
 	
-		$api_key = $settings['api_token'].'-'.$settings['api_dc'];
+		if ( isset( $settings['api_token'] ) ){
+			$api_token = $settings['api_token'].'-'.$settings['api_dc'];
+		}
 		
-		$mailchimp = new Mailchimp( $api_key );
+		if ( isset( $api_settings['api_key'] ) ){
+			$api_token = $api_settings['api_key'];
+		}
+		
+		$mailchimp = new Mailchimp( $api_token );
 		
 		//$campaigns = $mailchimp->campaigns->getList();
 		
