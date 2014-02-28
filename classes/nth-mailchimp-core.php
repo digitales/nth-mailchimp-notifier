@@ -504,6 +504,7 @@ class NthMailChimpCore
 		
 		// Override the main section of the template with the HTML content.
 		$content_sections['main'] = $html_content;
+		$content_sections['std_content'] = $html_content;
 		
 		$content = array(
 			'html' => $html_content,
