@@ -454,6 +454,14 @@ class NthMailChimpCore
 		
 		$the_post = get_post( $post_id );
 		
+		// We don't want to bombard the users with notifications.
+		$notification_sent = get_post_meta( $post_id, 'notification_sent', true );
+		
+		if( $notification_sent ){
+			return false;
+		}
+		
+		
 		$api_settings = self::get_settings('nthmc_api_key', true );
 		$settings = self::get_settings(null, true );
 		
@@ -531,10 +539,15 @@ class NthMailChimpCore
 			}
 
 			$test_result = $mailchimp->campaigns->sendTest( $campaign_id, $email_addresses );
+			
+			// update_post_meta( $post_id, 'notification_sent', true );
+			
 			return true;
 		
 		} else {
 			$mailchimp->campaigns->send( $campaign_id );
+			
+			update_post_meta( $post_id, 'notification_sent', true );
 			
 			return true;
 		}
