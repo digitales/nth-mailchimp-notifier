@@ -532,7 +532,7 @@ class NthMailChimpCore
 		// Now we have created a campaign, should we send it?
 		if ( isset( $settings['test_mode'] ) && 1 == $settings['test_mode'] ){
 			
-			$email_addresses = explode(', ', $settings['test_emails'] );
+			$email_addresses = explode(',', $settings['test_emails'] );
 			
 			foreach( $email_addresses AS $key => $address ){
 				$email_addresses[$key] = trim( $address);
