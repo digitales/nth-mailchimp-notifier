@@ -565,7 +565,7 @@ class NthMailChimpCore
 		$text_to_return = $text;
 		
 		// $regex  = '#\*\|([A-Z-]*)\|\*#i';
-		$regex= '#\*\|([A-Z-_]*|[A-Z-_]*\:[a-z\/]*)\|\*#i';
+		$regex= '#\*\|([A-Z-_]*|[A-Z-_]*\:[a-z\/.]*)\|\*#i';
 		
 		preg_match_all( $regex, $text, $matches );
 		
@@ -586,6 +586,7 @@ class NthMailChimpCore
 				$matches[$key] = $tmp;
 			}
 		}
+		
 		
 		// Now we have the tokens, let's replace them for actual values
 		foreach( $matches AS $token ){
