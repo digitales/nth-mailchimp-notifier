@@ -535,12 +535,10 @@ class NthMailChimpCore
 			$email_addresses = explode(',', $settings['test_emails'] );
 			
 			foreach( $email_addresses AS $key => $address ){
-				$email_addresses[$key] = trim( $address);
+				$email_addresses[$key] =  str_replace( '&amp;', '&', trim( $address) );
 			}
-
-			$test_result = $mailchimp->campaigns->sendTest( $campaign_id, $email_addresses );
 			
-			// update_post_meta( $post_id, 'notification_sent', true );
+			$test_result = $mailchimp->campaigns->sendTest( $campaign_id, $email_addresses );
 			
 			return true;
 		
@@ -565,7 +563,7 @@ class NthMailChimpCore
 		$text_to_return = $text;
 		
 		// $regex  = '#\*\|([A-Z-]*)\|\*#i';
-		$regex= '#\*\|([A-Z-_]*|[A-Z-_]*\:[a-z\/.]*)\|\*#i';
+		$regex= '#\*\|([A-Z-_]*|[A-Z-_]*\:[a-z\/\.]*)\|\*#i';
 		
 		preg_match_all( $regex, $text, $matches );
 		
