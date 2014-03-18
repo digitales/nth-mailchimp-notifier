@@ -112,7 +112,7 @@ class NthMailChimpCore
 	
 	static function add_actions()
 	{
-		add_action( 'publish_post', array( __CLASS__, 'new_post_notification' ) );
+		add_action( 'draft_to_publish', array( __CLASS__, 'new_post_notification' ) );
 	}
 	
 	
@@ -443,11 +443,14 @@ class NthMailChimpCore
 	}
 	
 	
-	static function new_post_notification( $post_id = null)
+	static function new_post_notification( $post, $post_id = null)
 	{
-		
 		if ( ! $post_id ){
 			$post_id = isset( $_GET['post_id'] ) && !empty( $_GET['post_id'] )? (int)$_GET['post_id'] : 0;
+		}
+		
+		if ( ! $post_id ){
+			$post_id = $post->ID;		
 		}
 		
 		$content_sections = array();
@@ -460,7 +463,6 @@ class NthMailChimpCore
 		if( $notification_sent ){
 			return false;
 		}
-		
 		
 		$api_settings = self::get_settings('nthmc_api_key', true );
 		$settings = self::get_settings(null, true );

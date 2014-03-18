@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: Nth MailChimp campaign notifier
-Description: A plugin to make it easier to integrate Scribblar with your WordPress site.
+Plugin Name: Nth MailChimp notifier
+Description: A plugin to make it easier to setup and run email campaignes in MailChimp.
 Version: 1.0
 Author: Ross Tweedie
 Author URI: http://nthdesigns.co.uk/
