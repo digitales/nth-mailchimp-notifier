@@ -457,6 +457,12 @@ class NthMailChimpCore
 		
 		$the_post = get_post( $post_id );
 		
+		// We only want to send the notifications for blog posts being published.
+		// Other content types don't need to send notifications.
+		if( 'post' !== $the_post->post_type ){
+			return false;
+		}		
+		
 		// We don't want to bombard the users with notifications.
 		$notification_sent = get_post_meta( $post_id, 'notification_sent', true );
 		
