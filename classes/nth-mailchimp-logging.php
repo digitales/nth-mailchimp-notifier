@@ -5,7 +5,7 @@
  * A set of functions to log messages for the plugin
  *
  * @author rtweedie
- * @package scribblar
+ * @package nthmailchimp
  * @since 1.0
  * @version 1.o
  * 

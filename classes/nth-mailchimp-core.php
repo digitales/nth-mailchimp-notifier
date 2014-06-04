@@ -1,6 +1,6 @@
 <?php
 /**
- * Scribblar Core
+ * MailChimp notifier Core
  *
  * A set of core functions shared between frontend and the adminstration system
  *
@@ -50,6 +50,8 @@ class NthMailChimpCore
 		
     public static $logger;
     public static $debug = true;
+	
+	public static $locale = null;
 
 
     public static $option_name 	= 'nth_mailchimp_settings';
@@ -66,7 +68,7 @@ class NthMailChimpCore
 		register_activation_hook( $this->plugin_file, array( __CLASS__, 'install' ) );
 		register_deactivation_hook( $this->plugin_file, array( __CLASS__, 'uninstall' ) );
 		
-		// Add the Scribblar actions and filtes.
+		// Add the actions and filters.
 		self::add_actions();
 		self::add_filters();
 		
@@ -76,7 +78,16 @@ class NthMailChimpCore
 		
 		
 		add_action('init', array( __CLASS__, 'early_request_handler'), 0);
-    }
+		
+		self::$locale = get_locale();
+		
+		if ( ! isset( $_POST ) || empty( $_POST ) ){
+		
+			remove_filter( 'locale', 'override_admin_language' );
+		}
+		
+		
+	}
 	
 	
 	static function early_request_handler()
@@ -99,14 +110,10 @@ class NthMailChimpCore
 
     static function register_post_type()
     {
-		include( SCRIBBLARPATH . 'classes/scribblar-room.php' );
-		
-		ScribblarRoom::init();
-    }
+	}
 	
 	static function add_metaboxes()
 	{
-		// include( SCRIBBLARPATH . 'classes/scribblar-metaboxes.php' );
 	}
 	
 	
@@ -609,13 +616,9 @@ class NthMailChimpCore
 				case 'P-URL':
 					$string = $the_post->guid;
 					break;
-				
 				case 'P-DATE':
-					if ( '' == $format ){
-						$string = mysql2date(get_option('date_format'), $the_post->post_date);
-					}else{
-		                $string = mysql2date($format, $the_post->post_date);
-					}
+					$date_format = ( '' == $date_format )? get_option('date_format') : $date_format ;
+		            $string = mysql2date($date_format, $the_post->post_date, true);
 					break;
 				case 'P-AUTHOR':
 					$author = get_userdata($the_post->post_author);
@@ -644,5 +647,16 @@ class NthMailChimpCore
 		return $text_to_return;
 	}
 	
+	static function get_locale()
+	{
+		return self::$locale;
+	}
+	
+	static function override_admin_language( $locale ){
+		if ( is_admin() ){		
+			$locale = self::$locale;
+		}
+		return $locale;
+	}
 
 }

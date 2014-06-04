@@ -110,15 +110,13 @@ class NthMailChimpAdmin extends NthMailChimpCore
      * @return void
      */
     static function index_page()
-    {		
+    {
 		self::include_view( 'index' );
     }
 	
 	
 	static function api_settings()
 	{
-		
-		
 		self::include_view( 'api_settings' );
 	}
 	
@@ -146,7 +144,6 @@ class NthMailChimpAdmin extends NthMailChimpCore
             'api-admin',
             'setting_api'           
         );
-		
 	}
 	
 	static public function sanitise_api( $input )

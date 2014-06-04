@@ -20,7 +20,7 @@ define( 'NTHMAILCHIMPPATH',   	trailingslashit( dirname( __FILE__ ) ) );
 define( 'NTHMAILCHIMPDIR',   	trailingslashit( dirname( plugin_basename( __FILE__ ) ) ) );
 define( 'NTHMAILCHIMPURL',	    plugin_dir_url( dirname( __FILE__ ) ) . NTHMAILCHIMPDIR );
 
-load_plugin_textdomain( 'scribblar', false, basename( dirname( __FILE__ ) ) . '/languages' );
+load_plugin_textdomain( 'nthmailchimp', false, basename( dirname( __FILE__ ) ) . '/languages' );
 
 // Set maximum execution time to 5 minutes - won't affect safe mode
 $safe_mode = array( 'On', 'ON', 'on', 1 );
