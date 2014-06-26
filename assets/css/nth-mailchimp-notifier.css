@@ -9,8 +9,7 @@
     clear: both; }
 .nth-mailchimp-notifier .box {
   width: 30%;
-  float: left;
-  height: 180px; }
+  float: left; }
   .nth-mailchimp-notifier .box img {
     *zoom: 1;
     margin-bottom: 10px;
@@ -21,7 +20,8 @@
     .nth-mailchimp-notifier .box img:after {
       clear: both; }
   .nth-mailchimp-notifier .box label {
-    *zoom: 1; }
+    *zoom: 1;
+    margin-bottom: 10px; }
     .nth-mailchimp-notifier .box label:before, .nth-mailchimp-notifier .box label:after {
       content: "";
       display: table; }

@@ -28,10 +28,11 @@
         }
         label{
             @include clearfix();
+						margin-bottom: 10px;
         }
         width: 30%;
         float: left;
-        height: 180px;
+
     }
 }
 
