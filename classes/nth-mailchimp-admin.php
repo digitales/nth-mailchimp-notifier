@@ -124,7 +124,7 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		echo '<input type="checkbox" id="_send_notification" name="_send_notification" value="1" ';
 		echo isset( $send_notification ) && 1 == $send_notification ? ' checked="checked" ': '';
 		echo '/> ';
-		_e('Email subscribers of this blog post');
+		_e('Email subscribers about this blog post');
 		echo '</label>';
 
 		// Get the MailChimp details
