@@ -22,19 +22,23 @@
 
     .box{
         img{
-            @include clearfix();
+	          @include clearfix();
             margin-bottom: 10px;
             border: 1px solid #fafafa;
-        }
+						width: 250px;
+						margin-top: 10px;
+	      }
         label{
             @include clearfix();
         }
         width: 30%;
         float: left;
         height: 180px;
+				overflow: hidden;
+				margin-bottom: 20px;
     }
 }
 
 .clear{
-    clear:both;
+  clear:both;
 }

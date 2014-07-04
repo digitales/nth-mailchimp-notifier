@@ -10,11 +10,15 @@
 .nth-mailchimp-notifier .box {
   width: 30%;
   float: left;
-  height: 180px; }
+  height: 180px;
+  overflow: hidden;
+  margin-bottom: 20px; }
   .nth-mailchimp-notifier .box img {
     *zoom: 1;
     margin-bottom: 10px;
-    border: 1px solid #fafafa; }
+    border: 1px solid #fafafa;
+    width: 250px;
+    margin-top: 10px; }
     .nth-mailchimp-notifier .box img:before, .nth-mailchimp-notifier .box img:after {
       content: "";
       display: table; }
