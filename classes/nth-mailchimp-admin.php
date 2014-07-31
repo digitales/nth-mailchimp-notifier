@@ -63,7 +63,7 @@ class NthMailChimpAdmin extends NthMailChimpCore
 	static function admin_menu()
 	{
 
-		add_options_page( 'MailChimp notifications', 'MailChimp notifications', 'edit_plugins', 'nth-mailchimp-settings', array( __CLASS__,'settings_page' ) );
+		add_options_page( 'MailChimp notifications', 'MailChimp notifications', 'edit_posts', 'nth-mailchimp-settings', array( __CLASS__,'settings_page' ) );
 		add_submenu_page( null, 'Send test email', 'Send test email', 'edit_posts', 'send-test-email', array( __CLASS__,'new_post_notification' ) );
 		add_submenu_page( null, 'Nth MailChimp API', 'Nth MailChimp API', 'edit_posts', 'nth-mailchimp-api', array( __CLASS__,'api_settings' ) );
 
