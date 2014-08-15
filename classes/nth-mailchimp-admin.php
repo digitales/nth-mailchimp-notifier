@@ -92,7 +92,7 @@ class NthMailChimpAdmin extends NthMailChimpCore
 	*/
 	static function meta_boxes( $post )
 	{
-		$post_id = $notification_sent = $notification_sent_at = $send_notification = null;
+		$post_id = $notification_sent = $notification_sent_at = $send_notification = $date_format = null;
 
 		if ( isset( $post ) && isset( $post->ID ) ) {
 			$post_id = $post->ID;
