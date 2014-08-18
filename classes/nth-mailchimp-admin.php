@@ -92,7 +92,8 @@ class NthMailChimpAdmin extends NthMailChimpCore
 	*/
 	static function meta_boxes( $post )
 	{
-		$post_id = $notification_sent = $notification_sent_at = $send_notification = $date_format = null;
+		$post_id 		= $notification_sent = $notification_sent_at = $send_notification = null;
+		$date_format 	= 'l jS \of F Y h:i:sA';
 
 		if ( isset( $post ) && isset( $post->ID ) ) {
 			$post_id = $post->ID;
@@ -101,8 +102,8 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		// Let's get the details for this post.
 		if ( $post_id ){
 			$notification_sent 		= get_post_meta( $post_id, 'notification_sent', true );
-			$notification_sent_at = get_post_meta( $post_id, 'notification_sent_at', true );
-			$notification_content = get_post_meta( $post_id, 'notification_content', true );
+			$notification_sent_at 	= get_post_meta( $post_id, 'notification_sent_at', true );
+			$notification_content 	= get_post_meta( $post_id, 'notification_content', true );
 
 			$send_notification 		= get_post_meta( $post_id, '_send_notification', true );
 		}
@@ -110,16 +111,17 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		if ( $notification_sent ){
 			echo '<p>'.__('A notification has already been sent to the subscribers' ).'</p>';
 			if ( $notification_sent_at ){
-
 				$date_format = ( '' == $date_format )? get_option('date_format') : $date_format ;
 
-				$date = new DateTime( $notification_sent_at );
-
-				echo 'Notification sent: <b>'. $date->format( $date_format ).'</b>';
+				try {
+				    $date = new DateTime( '@' . $notification_sent_at );
+				    if ($date) echo 'Notification sent: <b>'. $date->format( $date_format ).'</b>';
+				} catch (Exception $e) {
+				    echo '<i>'.$e->getMessage().'</i>';
+				}
 			}
 			return true;
 		}
-
 		echo '<label for="_send_notification">';
 		echo '<input type="checkbox" id="_send_notification" name="_send_notification" value="1" ';
 		echo isset( $send_notification ) && 1 == $send_notification ? ' checked="checked" ': '';
