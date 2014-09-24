@@ -7,7 +7,7 @@
  * @author rtweedie
  * @package nth mailchimp
  * @since 1.0
- * @version 1.0
+ * @version 1.3
  */
 
  // Include the logging functions
@@ -133,7 +133,8 @@ class NthMailChimpCore
 
 	static function add_filters()
 	{
-		// Stub
+			add_filter( 'mlp_pre_save_post_meta', array( __CLASS__, 'pre_save_post_meta'), 10, 2 );
+
 	}
 
 	static function set_api_key( $key )
@@ -549,6 +550,39 @@ class NthMailChimpCore
 			$locale = self::$locale;
 		}
 		return $locale;
+	}
+	
+	
+	  /**
+	   * Function to remove the nth MailChimp specific post meta data when the post is copied into other languages
+	   *
+	   * @param array $post_meta || null
+	   * @param string $save_context
+	   *
+	   * @return array || null
+	   */
+	  static function pre_save_post_meta( $post_meta = null, $save_context  = null ){
+			
+			if ( ! $post_meta && ! is_array( $post_meta ) ){
+				  return $post_meta;
+			}
+			
+			// Let's strip out the Nth MailChimp post meta as it won't be needed in the new translated post
+			$elements_to_exclude = array(
+										 '_send_notification' => '_send_notification',
+										 'notification_content' =>'notification_content',
+										  'notification_sent' => 'notification_sent',
+										  'notification_sent_at' => 'notification_sent_at',
+									);
+			
+			$elements_to_exclude = apply_filters( 'nth_mailchimp_exlude_metakeys', $elements_to_exclude );
+			
+			foreach( $elements_to_exclude AS $key => $value ){
+				  if ( isset( $post_meta[ $key] ) ){
+						unset( $post_meta[ $key ] );
+				  }
+			}
+			return $post_meta;  
 	}
 
 }
