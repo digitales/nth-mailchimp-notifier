@@ -2,7 +2,7 @@
 /*
 Plugin Name: Nth MailChimp notifier
 Description: A plugin to make it easier to setup and run email campaignes in MailChimp.
-Version: 1.0
+Version: 1.3
 Author: Ross Tweedie
 Author URI: http://nthdesigns.co.uk/
 */
