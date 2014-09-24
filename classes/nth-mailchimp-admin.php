@@ -115,7 +115,7 @@ class NthMailChimpAdmin extends NthMailChimpCore
 		if ( $notification_sent ){
 			echo '<p>'.__('A notification has already been sent to the subscribers' ).'</p>';
 			if ( $notification_sent_at ){
-				$date_format = ( '' == $date_format )? get_option('date_format') : $date_format ;
+				$date_format = ( isset( $date_format ) && !empty( $date_format ) &&  '' != $date_format )? $date_format :  get_option('date_format');
 
 				try {
 				    $date = new DateTime( '@' . $notification_sent_at );
