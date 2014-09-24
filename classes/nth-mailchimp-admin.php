@@ -7,7 +7,7 @@
  * @author rtweedie
  * @package nth mailchimp
  * @since 1.0
- * @version 1.0
+ * @version 1.1
  */
 
 class NthMailChimpAdmin extends NthMailChimpCore
@@ -93,12 +93,16 @@ class NthMailChimpAdmin extends NthMailChimpCore
 	static function meta_boxes( $post )
 	{
 		$post_id 		= $notification_sent = $notification_sent_at = $send_notification = null;
-		$date_format 	= 'l jS \of F Y h:i:sA';
+		/**
+		 * We should avoid setting the date format manually.
+		 * Different languages have their own date format.
+		 */
+		 // $date_format 	= 'l jS \of F Y h:i:sA';
 
 		if ( isset( $post ) && isset( $post->ID ) ) {
 			$post_id = $post->ID;
 		}
-
+		
 		// Let's get the details for this post.
 		if ( $post_id ){
 			$notification_sent 		= get_post_meta( $post_id, 'notification_sent', true );
