@@ -7,7 +7,7 @@
  * @author rtweedie
  * @package nth mailchimp
  * @since 1.2
- * @version 1.2
+ * @version 1.3
  */
 
 include_once( NTHMAILCHIMPPATH . 'classes/nth-mailchimp-core.php' );
@@ -41,6 +41,7 @@ class NthMailChimpNotification{
 		static function ok_to_send_notifications( $post_id, $post )
 		{
 				$send_notification = $notification_sent = null;
+				
 
 				// We only want to send the notifications for blog posts being published.
 				// Other content types don't need to send notifications.
@@ -69,10 +70,20 @@ class NthMailChimpNotification{
 						self::$test_mode = true;
 						return 2;
 				}
+				
+				$ignore_user_updates = false;
+				$ignore_user_updates = apply_filters( 'nth_mailchimp_ignore_user_updates', $current_user->data->ID );
+				
+				if ( true == $ignore_user_updates ){
+						self::$test_mode = true;
+						return 2;
+				}
 
 				$domain = $_SERVER['HTTP_HOST'];
 
 				$test_domains = self::$test_domains;
+				
+				$test_domains = apply_filters( 'nth_mailchimp_test_domains', $test_domains );
 
 				foreach( $test_domains AS $the_domain )
 				{
