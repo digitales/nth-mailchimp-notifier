@@ -7,7 +7,7 @@
  * @author rtweedie
  * @package nth mailchimp
  * @since 1.2
- * @version 1.3
+ * @version 1.4
  */
 
 include_once( NTHMAILCHIMPPATH . 'classes/nth-mailchimp-core.php' );
@@ -83,7 +83,7 @@ class NthMailChimpNotification{
 
 				$test_domains = self::$test_domains;
 				
-				$test_domains = apply_filters( 'nth_mailchimp_test_domains', $test_domains );
+				// $test_domains = apply_filters( 'nth_mailchimp_test_domains', $test_domains );
 
 				foreach( $test_domains AS $the_domain )
 				{
