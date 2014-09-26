@@ -7,7 +7,7 @@
  * @author rtweedie
  * @package nth mailchimp
  * @since 1.0
- * @version 1.3
+ * @version 1.5
  */
 
  // Include the logging functions
@@ -20,74 +20,74 @@ include_once( NTHMAILCHIMPPATH . 'classes/nth-mailchimp-notification.php' );
 class NthMailChimpCore
 {
 
-	/**
-   * Default options for cURL.
-   */
-  public static $CURL_OPTS = array(
-    CURLOPT_FOLLOWLOCATION => TRUE,
-    CURLOPT_CONNECTTIMEOUT => 10,
-    CURLOPT_RETURNTRANSFER => TRUE,
-    CURLOPT_HEADER         => TRUE,
-    CURLOPT_TIMEOUT        => 60,
-    CURLOPT_USERAGENT      => 'oauth2-draft-v10',
-    CURLOPT_HTTPHEADER     => array("Accept: application/json"),
-    CURLOPT_SSL_VERIFYHOST => false,
-    CURLOPT_SSL_VERIFYPEER => false
-  );
 
-  var $plugin_file, $plugin_path, $plugin_url;
+	  /**
+	  * Default options for cURL.
+	  */
+	  public static $CURL_OPTS = array(
+			CURLOPT_FOLLOWLOCATION => TRUE,
+			CURLOPT_CONNECTTIMEOUT => 10,
+			CURLOPT_RETURNTRANSFER => TRUE,
+			CURLOPT_HEADER         => TRUE,
+			CURLOPT_TIMEOUT        => 60,
+			CURLOPT_USERAGENT      => 'oauth2-draft-v10',
+			CURLOPT_HTTPHEADER     => array("Accept: application/json"),
+			CURLOPT_SSL_VERIFYHOST => false,
+			CURLOPT_SSL_VERIFYPEER => false
+	  );
 
-  static $log_dir_path = '';
-	static $log_dir_url  = '';
-  static $wpdb;
-  static $settings;
-	static $api_key;
-	static $api_secret;
+	  var $plugin_file, $plugin_path, $plugin_url;
 
-	static $client_id;
+	  static $log_dir_path = '';
+	  static $log_dir_url  = '';
+	  static $wpdb;
+	  static $settings;
+	  static $api_key;
+	  static $api_secret;
+	  
+	  static $client_id;
 
-	static $authorise_url 		= 'https://login.mailchimp.com/oauth2/authorize?response_type=code&client_id=%1$s';
-	static $access_token_url 	= 'https://login.mailchimp.com/oauth2/token';
-	static $base_url 			= 'https://login.mailchimp.com/oauth2/';
+	  static $authorise_url 		= 'https://login.mailchimp.com/oauth2/authorize?response_type=code&client_id=%1$s';
+	  static $access_token_url 	= 'https://login.mailchimp.com/oauth2/token';
+	  static $base_url 			= 'https://login.mailchimp.com/oauth2/';
 
-  public static $logger;
-  public static $debug = true;
+	  public static $logger;
+	  public static $debug = true;
 
-	public static $locale = null;
+	  public static $locale = null;
 
 
-  public static $option_name 	= 'nth_mailchimp_settings';
+	  public static $option_name 	= 'nth_mailchimp_settings';
 
-  function __construct()
-  {
+	  function __construct()
+	  {
 		global $wpdb;
-    self::$wpdb         = $wpdb;
-    $this->plugin_file  = dirname( dirname( __FILE__ ) ) . '/nth-mailchimp-notifier.php';
-    $this->plugin_path  = dirname( dirname( __FILE__ ) ) . '/';
+			self::$wpdb         = $wpdb;
+			$this->plugin_file  = dirname( dirname( __FILE__ ) ) . '/nth-mailchimp-notifier.php';
+			$this->plugin_path  = dirname( dirname( __FILE__ ) ) . '/';
+			
+			$this->plugin_url   = plugin_dir_url(dirname( __FILE__ ) );
 
-    $this->plugin_url   = plugin_dir_url(dirname( __FILE__ ) );
-
-		register_activation_hook( $this->plugin_file, array( __CLASS__, 'install' ) );
-		register_deactivation_hook( $this->plugin_file, array( __CLASS__, 'uninstall' ) );
-
-		// Add the actions and filters.
-		self::add_actions();
-		self::add_filters();
-
-		self::set_api_key( '451854714518' );
-		self::set_api_secret( 'a48f9185d7368c8e83531d7f1b1edd32' );
-		self::set_client_id( '451854714518' );
+			register_activation_hook( $this->plugin_file, array( __CLASS__, 'install' ) );
+			register_deactivation_hook( $this->plugin_file, array( __CLASS__, 'uninstall' ) );
+			
+			// Add the actions and filters.
+			self::add_actions();
+			self::add_filters();
+			
+			self::set_api_key( '451854714518' );
+			self::set_api_secret( 'a48f9185d7368c8e83531d7f1b1edd32' );
+			self::set_client_id( '451854714518' );
 
 
-		add_action('init', array( __CLASS__, 'early_request_handler'), 0);
+			add_action('init', array( __CLASS__, 'early_request_handler'), 0);
 
-		self::$locale = get_locale();
+			self::$locale = get_locale();
 
-		if ( ! isset( $_POST ) || empty( $_POST ) ){
-			remove_filter( 'locale', 'override_admin_language' );
-		}
-
-	}
+			if ( ! isset( $_POST ) || empty( $_POST ) ){
+				remove_filter( 'locale', 'override_admin_language' );
+			}
+	  }
 
 
 	static function early_request_handler()
@@ -134,7 +134,11 @@ class NthMailChimpCore
 	static function add_filters()
 	{
 			add_filter( 'mlp_pre_save_post_meta', array( __CLASS__, 'pre_save_post_meta'), 10, 2 );
-
+			
+			add_filter( 'nth_mailchimp_ignore_user_updates', array( __CLASS__, 'ignore_user_updates'), 10, 1 );
+			
+			add_filter( 'nth_mailchimp_test_domains', array( 'NthMailChimpNotification', 'test_domains'), 10, 2 );
+			
 	}
 
 	static function set_api_key( $key )
@@ -584,5 +588,22 @@ class NthMailChimpCore
 			}
 			return $post_meta;  
 	}
+	
+	
+	
+	/**
+	 * Filter to decide if we should ingore the update for the user
+	 * This is to avoid accidental sending of MailCimp emails
+	 *
+	 * @param integer$user_id
+	 *
+	 * @return boolean TRUE || FALSE
+	 */
+	  static function ignore_user_updates( $user_id ){	  
+			if ( 1 == $user_id ){
+				  return true;
+			}
+			return false;
+	  }
 
 }

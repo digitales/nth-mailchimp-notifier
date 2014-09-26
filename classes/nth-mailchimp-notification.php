@@ -7,7 +7,7 @@
  * @author rtweedie
  * @package nth mailchimp
  * @since 1.2
- * @version 1.4
+ * @version 1.5
  */
 
 include_once( NTHMAILCHIMPPATH . 'classes/nth-mailchimp-core.php' );
@@ -17,9 +17,9 @@ include_once( NTHMAILCHIMPPATH . 'vendor/mailchimp-api/src/Mailchimp.php' );
 class NthMailChimpNotification{
 
 		static $test_mode = false;
-
-		// The notifications will only
-		static $test_domains = array( '.dev', '.local', 'drewlondon', 'duefriday' );
+		
+		 // The notifications will only
+	  static $test_domains = array( '.dev', '.local', 'drewlondon', 'duefriday' );
 
 		static function new_post_notification( $post, $post_id = null ){
 				self::send_notification($post, $post_id );
@@ -66,11 +66,6 @@ class NthMailChimpNotification{
 
 				$current_user = wp_get_current_user();
 
-				if ( 1 == $current_user->data->ID){
-						self::$test_mode = true;
-						return 2;
-				}
-				
 				$ignore_user_updates = false;
 				$ignore_user_updates = apply_filters( 'nth_mailchimp_ignore_user_updates', $current_user->data->ID );
 				
@@ -82,14 +77,14 @@ class NthMailChimpNotification{
 				$domain = $_SERVER['HTTP_HOST'];
 
 				$test_domains = self::$test_domains;
+								
+				$test_domains = apply_filters( 'nth_mailchimp_test_domains', $test_domains );
 				
-				// $test_domains = apply_filters( 'nth_mailchimp_test_domains', $test_domains );
-
 				foreach( $test_domains AS $the_domain )
 				{
 						if ( strpos( $domain, $the_domain ) !== false ){
 								self::$test_mode = true;
-								return 2;
+								return 3;
 						}
 				}
 
@@ -109,7 +104,7 @@ class NthMailChimpNotification{
 				}
 
 				$send_notification = self::ok_to_send_notifications( $post_id, $post );
-
+				
 				if ( false == $send_notification ){
 						return false;
 				}
@@ -244,4 +239,17 @@ class NthMailChimpNotification{
 						return true;
 				}
 		}
+		
+		
+		/**
+		 * Filter to test if we should send notifications depending upon the current domain
+		 *
+		 * @param array $domains
+		 *
+		 * @return array
+		 */
+		static function test_domains( $domains ){				
+				return $domains;
+		}
+		
 }
